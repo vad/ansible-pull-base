@@ -1,0 +1,12 @@
+- hosts: localhost
+  pre_tasks:
+    - file: path=/var/lib/node_exporter state=directory
+    - file: path=/var/lib/node_exporter/textfile_collector state=directory mode=0777
+    # can't use the 'apt' module because it requires python-apt...
+    - command: apt-get install -y -qq python-apt
+  vars:
+    prometheus_node_exporter_config_flags:
+      'collector.textfile.directory': '/var/lib/node_exporter/textfile_collector'
+    prometheus_node_exporter_enabled_collectors: []
+  roles:
+    - ansible-prometheus-node-exporter
