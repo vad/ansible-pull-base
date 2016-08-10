@@ -1,4 +1,5 @@
-- hosts: localhost
+- name: install prometheus node exporter
+  hosts: localhost
   pre_tasks:
     - file: path=/var/lib/node_exporter state=directory
     - file: path=/var/lib/node_exporter/textfile_collector state=directory mode=0777
@@ -10,3 +11,9 @@
     prometheus_node_exporter_enabled_collectors: []
   roles:
     - ansible-prometheus-node-exporter
+
+- name: install
+  hosts: localhost
+  tasks:
+    - template: src=templates/cadvisor.conf.j2 dest=/etc/init/cadvisor.conf
+    - service: name=cadvisor state=started
