@@ -1,0 +1,4 @@
+exec /usr/local/bin/docker_oom_exporter -output /var/lib/node_exporter/textfile_collector/docker_oom.prom
+
+start on started docker
+respawn
