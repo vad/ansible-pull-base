@@ -15,7 +15,7 @@
 - name: install docker-oom-exporter
   hosts: localhost
   vars:
-    docker_oom_exporter_version: 0.1.8
+    docker_oom_exporter_version: 0.1.9
   tasks:
     - get_url: "url=https://github.com/vad/docker_oom_exporter/releases/download/{{ docker_oom_exporter_version }}/docker_oom_exporter-{{ docker_oom_exporter_version }}-linux-amd64 dest=/usr/local/bin/docker_oom_exporter mode=0555"
     - template: src=templates/docker-oom-exporter.conf.j2 dest=/etc/init/docker-oom-exporter.conf
