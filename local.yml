@@ -17,6 +17,7 @@
   vars:
     docker_oom_exporter_version: 0.1.9
   tasks:
+    - service: name=docker-oom-exporter state=stopped
     - get_url: "url=https://github.com/vad/docker_oom_exporter/releases/download/{{ docker_oom_exporter_version }}/docker_oom_exporter-{{ docker_oom_exporter_version }}-linux-amd64 dest=/usr/local/bin/docker_oom_exporter mode=0555 force=yes"
     - template: src=templates/docker-oom-exporter.conf.j2 dest=/etc/init/docker-oom-exporter.conf
     - service: name=docker-oom-exporter state=started
