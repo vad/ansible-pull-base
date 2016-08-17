@@ -1,5 +1,7 @@
 - name: install prometheus node exporter
   hosts: localhost
+  tags:
+    - node-exporter
   pre_tasks:
     - file: path=/var/lib/node_exporter state=directory
     - file: path=/var/lib/node_exporter/textfile_collector state=directory mode=0777
@@ -14,6 +16,8 @@
 
 - name: install docker-oom-exporter
   hosts: localhost
+  tags:
+    - oom-exporter
   vars:
     docker_oom_exporter_version: 0.1.9
   tasks:
@@ -24,6 +28,8 @@
 
 - name: install cadvisor
   hosts: localhost
+  tags:
+    - cadvisor
   tasks:
     - template: src=templates/cadvisor.conf.j2 dest=/etc/init/cadvisor.conf
     - service: name=cadvisor state=started
