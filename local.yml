@@ -21,15 +21,28 @@
   vars:
     docker_oom_exporter_version: 0.1.9
   tasks:
-    - service: name=docker-oom-exporter state=stopped
-    - get_url: "url=https://github.com/vad/docker_oom_exporter/releases/download/{{ docker_oom_exporter_version }}/docker_oom_exporter-{{ docker_oom_exporter_version }}-linux-amd64 dest=/usr/local/bin/docker_oom_exporter mode=0555 force=yes"
-    - template: src=templates/docker-oom-exporter.conf.j2 dest=/etc/init/docker-oom-exporter.conf
-    - service: name=docker-oom-exporter state=started
+    - name: stop docker-oom-exporter
+      service: name=docker-oom-exporter state=stopped
+      ignore_errors: yes
+    - name: fetch oom-exporter binary
+      get_url: "url=https://github.com/vad/docker_oom_exporter/releases/download/{{ docker_oom_exporter_version }}/docker_oom_exporter-{{ docker_oom_exporter_version }}-linux-amd64 dest=/usr/local/bin/docker_oom_exporter mode=0555 force=yes"
+    - name: install upstart service definition
+      template: src=templates/docker-oom-exporter.conf.j2 dest=/etc/init/docker-oom-exporter.conf
+    - name: start docker-oom-exporter
+      service: name=docker-oom-exporter state=started
 
 - name: install cadvisor
   hosts: localhost
   tags:
     - cadvisor
   tasks:
-    - template: src=templates/cadvisor.conf.j2 dest=/etc/init/cadvisor.conf
-    - service: name=cadvisor state=started
+    - name: Check if docker is installed
+      command: docker version
+      ignore_errors: yes
+      register: docker_check
+    - name: Install upstart service definition
+      template: src=templates/cadvisor.conf.j2 dest=/etc/init/cadvisor.conf
+      when: docker_check.rc == 0
+    - name: Start cadvisor
+      service: name=cadvisor state=started
+      when: docker_check.rc == 0
