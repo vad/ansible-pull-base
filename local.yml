@@ -1,3 +1,12 @@
+- name: install apt python module (dependency of apt ansible module)
+  hosts: localhost
+  tags:
+  - node-exporter
+  - filebeat
+  tasks:
+    # can't use the 'apt' module because it requires python-apt...
+    - command: apt-get install -y -qq python-apt
+
 - name: install prometheus node exporter
   hosts: localhost
   tags:
@@ -5,8 +14,6 @@
   pre_tasks:
     - file: path=/var/lib/node_exporter state=directory
     - file: path=/var/lib/node_exporter/textfile_collector state=directory mode=0777
-    # can't use the 'apt' module because it requires python-apt...
-    - command: apt-get install -y -qq python-apt
   vars:
     prometheus_node_exporter_config_flags:
       'collector.textfile.directory': '/var/lib/node_exporter/textfile_collector'
@@ -31,7 +38,7 @@
     - name: start docker-oom-exporter
       service: name=docker-oom-exporter state=started
 
-- name: install cadvisor
+- name: install cadvisor if docker is installed
   hosts: localhost
   tags:
     - cadvisor
@@ -46,3 +53,30 @@
     - name: Start cadvisor
       service: name=cadvisor state=started
       when: docker_check.rc == 0
+
+- name: install filebeat
+  hosts: localhost
+  tags:
+    - filebeat
+  vars:
+    filebeat_version: 5.0.1
+    filebeat_ca_cert: "{{ lookup('file', 'resources/vault-ca.crt') }}"
+    filebeat_ca_path: /etc/pki/tls/certs/logstash-forwarder.crt
+    filebeat_config:
+      filebeat:
+        prospectors:
+          - paths:
+              - /var/log/messages
+              - /var/log/*.log
+            input_type: log
+      output:
+        # elasticsearch:
+        #   hosts:
+        #     - "http://localhost:9200"
+        #   username: "bob"
+        #   password: "12345"
+      logging:
+        to_syslog: true
+        level: error
+  roles:
+    - DavidWittman.filebeat
