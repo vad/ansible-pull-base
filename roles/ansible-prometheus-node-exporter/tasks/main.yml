@@ -1,9 +1,19 @@
 ---
+- name: "check which node_exporter is currently installed, if any"
+  shell: "/opt/prometheus/exporters/node_exporter_current/node_exporter -version | head -1 | sed -r 's/.*version ([0-9\\.]*).*/\\1/'"
+  register: node_exporter_version_command
+
+- set_fact:
+    current_node_exporter_version: "{{ node_exporter_version_command.stdout }}"
+
+- set_fact:
+    node_exporter_requires_upgrade: "{{ prometheus_node_exporter_version != current_node_exporter_version }}"
 
 - name: download prometheus node exporter binary
   get_url:
     url: "https://github.com/prometheus/node_exporter/releases/download/{{ prometheus_node_exporter_version }}/{{ prometheus_node_exporter_release_name }}.tar.gz"
     dest: "{{ prometheus_exporters_common_dist_dir }}"
+  when: node_exporter_requires_upgrade
 
 - name: unarchive binary tarball
   unarchive:
@@ -14,6 +24,7 @@
   register: prometheus_node_exporter_updated
   notify:
     - restart node exporter
+  when: node_exporter_requires_upgrade
 
 - name: update group and owner for files
   file:
