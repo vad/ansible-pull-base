@@ -59,24 +59,10 @@
   tags:
     - filebeat
   vars:
+    # only major version is important, minor are not considered
     filebeat_version: 5.0.1
     filebeat_ca_cert: "{{ lookup('file', 'resources/vault-ca.crt') }}"
-    filebeat_ca_path: /etc/pki/tls/certs/logstash-forwarder.crt
-    filebeat_config:
-      filebeat:
-        prospectors:
-          - paths:
-              - /var/log/messages
-              - /var/log/*.log
-            input_type: log
-      output:
-        # elasticsearch:
-        #   hosts:
-        #     - "http://localhost:9200"
-        #   username: "bob"
-        #   password: "12345"
-      logging:
-        to_syslog: true
-        level: error
+    filebeat_ca_path: /etc/filebeat/ca.crt
+    filebeat_config: "{{ lookup('file', 'resources/filebeat/filebeat.yml') | from_yaml }}"
   roles:
     - DavidWittman.filebeat

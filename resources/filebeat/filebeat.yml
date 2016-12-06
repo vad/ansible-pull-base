@@ -1,0 +1,84 @@
+filebeat:
+  prospectors:
+    -
+      paths:
+        - "/var/log/syslog"
+        - "/var/log/kern.log"
+        - "/var/log/auth"
+        - "/var/log/dmesg"
+        - "/var/log/cloud-init*"
+      input_type: log
+      exclude_files: [".gz$"]
+      document_type: syslog
+      fields:
+        tags: [syslog]
+      fields_under_root: true
+
+    -
+      paths:
+        - "/var/log/spaziodati/**/*.log"
+      input_type: log
+      document_type: sd-logs
+      fields:
+          tags: [sd-logs]
+      fields_under_root: true
+      scan_frequency: 10s
+
+    -
+      paths:
+        - "/var/log/spaziodati/*.log"
+      input_type: log
+      document_type: sd-logs-generic
+      fields:
+          tags: [sd-logs-generic]
+      fields_under_root: true
+      scan_frequency: 10s
+
+    -
+      paths:
+        # da migrare in /var/log/spaziodati/
+        - "/var/log/containers/atoka-revenge_atoka-revenge.log"
+      input_type: log
+      document_type: nginx-access
+      fields:
+        tags: [production, revenge]
+      fields_under_root: true
+      scan_frequency: 10s
+
+    -
+      paths:
+        # da migrare in /var/log/spaziodati/
+          - "/var/log/containers/atoka-revenge-unstable_atoka-revenge-unstable.log"
+      input_type: log
+      document_type: nginx-access
+      fields:
+        tags: [unstable, revenge]
+      fields_under_root: true
+      scan_frequency: 10s
+
+    -
+      paths:
+        - "/var/log/upstart/sd*.log"
+      input_type: log
+      exclude_files: [".gz$"]
+      document_type: syslog
+      fields:
+        tags: [syslog, upstart-sd]
+      fields_under_root: true
+      scan_frequency: 10s
+
+output:
+  logstash:
+    hosts: ["172.31.45.248:5000"]
+    worker: 2
+    tls:
+      certificate_authorities: ["/etc/filebeat/ca.crt"]
+
+logging:
+  level: WARNING
+  to_files: true
+  files:
+    path: /var/log/
+    name: filebeat.log
+    keepfiles: 7
+    rotateeverybytes: 10485760 # = 10MB
